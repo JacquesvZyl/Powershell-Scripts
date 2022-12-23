@@ -1,11 +1,12 @@
 $CurrentUser = (Get-ChildItem Env:\USERNAME).value
-$DownloadFolderFiles = Get-ChildItem -file -Path "C:\Users\$CurrentUser\downloads" 
+$BasePath = "C:\Users\$CurrentUser\downloads" 
+$DownloadFolderFiles = Get-ChildItem -file -Path $BasePath
 
 
 
 $ExtensionTypes = @{
     documents   = @{
-        extensions = @('.doc', '.docx', '.csv', '.docx', '.scss', '.pdf', '.xls', '.xlsx', '.txt'); 
+        extensions = @('.doc', '.docx', '.csv', '.scss', '.pdf', '.xls', '.xlsx', '.txt'); 
         folder     = @('Documents_Sorted')
     }
     images      = @{
@@ -36,40 +37,73 @@ $ExtensionTypes = @{
 
 
 
-function MoveFiles($enum) {
-    
-    foreach ($extension in $enum.Value.extensions) {
-        $DownloadFolderFiles | Where-Object { $_.extension -eq $extension }  | Move-Item -Destination "C:\Users\$CurrentUser\downloads\$($enum.Value.folder)"
+function New-Folder {
+    param([string]$Path, [string]$FolderName)
+
+    $Exists = Test-Path -Path "$Path\$FolderName" -PathType Container
+
+
+    if ($Exists -eq $True) {
+        Write-Warning "$FolderName already exists in $Path. Skipping folder creation"
     }
-    
+    else {
+        New-Item -Path $Path -name $FolderName -ItemType Directory
+    }
 }
 
+function Move-Files {
+    param([string]$Destination, [object]$Files, [string]$ExtensionFilter = '*')
 
-function TestAndCreateFolders {
-    foreach ($enum in $ExtensionTypes.GetEnumerator()) {
+    $FilteredFiles = $Files | Where-Object { $_.extension -eq $extensionFilter } 
+    
+    foreach ($File in $FilteredFiles) {
         
-        if (Test-Path  -Path "C:\Users\$CurrentUser\downloads\$($enum.Value.folder)") {
-            Write-Output "$($enum.Value.folder) already exists"
-            MoveFiles($enum)
+
+        $Exists = Test-Path -Path "$Destination\$($File.name)"
+        
+            
+        if ($Exists -eq $true) {
+            Write-Host "File $($file.name) already exists in $Destination. Overwrite? (Y/N)" -ForegroundColor Red
+            $Choice = Read-Host " "
+            if ($Choice -eq 'y') {
+                $file | Move-Item -Destination $Destination -ErrorAction Stop -Force
+                Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
+            }
+            else {
+                Write-Host "Skipping File '$($file.name)'"
+            }
         }
         else {
-            try {
-
-                New-Item -Path "C:\Users\$CurrentUser\downloads" -name "$($enum.Value.folder)" -ItemType Directory
-                MoveFiles($enum)
-            }
-            catch {
-                Write-Warning "Unable to create $($enum.Value.folder)"
-            }
+                
+            $file | Move-Item -Destination $Destination -ErrorAction Stop
+            Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
         }
-
-
-        
+       
     }
+    
+    
+    
+    
+    
+}
+
+
+
+foreach ($enum in $ExtensionTypes.GetEnumerator()) {
+
+    
+    New-Folder -Path $BasePath -FolderName $enum.value.folder
+    
+
+    foreach ($extension in $enum.Value.extensions) {
+        
+        Move-Files -Destination "$BasePath\$($enum.value.folder)" -Files $DownloadFolderFiles -ExtensionFilter $extension
+    }
+        
+
 }
 
 
 
 
 
-TestAndCreateFolders
