@@ -102,8 +102,3 @@ foreach ($enum in $ExtensionTypes.GetEnumerator()) {
         
 
 }
-
-
-
-
-
