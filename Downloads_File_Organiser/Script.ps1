@@ -1,8 +1,8 @@
 <# ================================ DESCRIPTION================================ #>
 
 # This script organizes your downloads directory according to file extension.
+# Script not targeting a specific file extension? Check the $ExtensionTypes variable and add the extension to any of the extensions arrays, or add another file type array with your own folder name and extension types
 # Note: This script is NOT run recursively i.e it only targets files directly in the downloads folder and NOT files in sub-folders
-# Script not targeting a specific file extension? Check the $ExtensionTypes variable and add the extension to any of the extensions arrays
 
 
 
