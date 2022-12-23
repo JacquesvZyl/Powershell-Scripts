@@ -1,8 +1,9 @@
+
+<# ================================ VARIABLES ================================ #>
+
 $CurrentUser = (Get-ChildItem Env:\USERNAME).value
 $BasePath = "C:\Users\$CurrentUser\downloads" 
 $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath
-
-
 
 $ExtensionTypes = @{
     documents   = @{
@@ -36,6 +37,9 @@ $ExtensionTypes = @{
 }
 
 
+
+
+<# ================================ FUNCTIONS ================================ #>
 
 function New-Folder {
     param([string]$Path, [string]$FolderName)
@@ -88,6 +92,8 @@ function Move-Files {
 }
 
 
+
+<# ================================ LOGIC ================================ #>
 
 foreach ($enum in $ExtensionTypes.GetEnumerator()) {
 
