@@ -1,3 +1,10 @@
+<# ================================ DESCRIPTION================================ #>
+
+# This script organizes your downloads directory according to file extension.
+# Note: This script is NOT run recursively i.e it only targets files directly in the downloads folder and NOT files in sub-folders
+# Script not targeting a specific file extension? Check the $ExtensionTypes variable and add the extension to any of the extensions arrays
+
+
 
 <# ================================ VARIABLES ================================ #>
 
@@ -62,10 +69,8 @@ function Move-Files {
     
     foreach ($File in $FilteredFiles) {
         
-
         $Exists = Test-Path -Path "$Destination\$($File.name)"
         
-            
         if ($Exists -eq $true) {
             Write-Host "File $($file.name) already exists in $Destination. Overwrite? (Y/N)" -ForegroundColor Red
             $Choice = Read-Host " "
@@ -84,27 +89,17 @@ function Move-Files {
         }
        
     }
-    
-    
-    
-    
-    
 }
-
-
 
 <# ================================ LOGIC ================================ #>
 
 foreach ($enum in $ExtensionTypes.GetEnumerator()) {
 
-    
     New-Folder -Path $BasePath -FolderName $enum.value.folder
     
-
     foreach ($extension in $enum.Value.extensions) {
         
         Move-Files -Destination "$BasePath\$($enum.value.folder)" -Files $DownloadFolderFiles -ExtensionFilter $extension
     }
-        
 
 }
