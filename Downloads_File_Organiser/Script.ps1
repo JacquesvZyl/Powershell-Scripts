@@ -46,7 +46,7 @@ $ExtensionTypes = @(
     }
     [PSCustomObject]@{
         type       = 'Web'
-        extensions = @('.asp', '.cer', '.cfm', '.cgi', '.css', '.htm', '.html', '.js', '.jsp', '.part', '.php', '.rss', '.xhtml', '.json')
+        extensions = @('.asp', '.cer', '.cfm', '.cgi', '.css', '.scss', '.htm', '.html', '.js', '.jsp', '.part', '.php', '.rss', '.xhtml', '.json')
         folder     = "Web_sorted"
     }
     [PSCustomObject]@{
