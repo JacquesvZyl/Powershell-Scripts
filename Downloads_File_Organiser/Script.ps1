@@ -10,43 +10,58 @@
 
 $CurrentUser = (Get-ChildItem Env:\USERNAME).value
 $BasePath = "C:\Users\$CurrentUser\downloads" 
-$DownloadFolderFiles = Get-ChildItem -file -Path $BasePath
 
-$ExtensionTypes = @{
-    documents   = @{
-        extensions = @('.doc', '.docx', '.csv', '.scss', '.pdf', '.xls', '.xlsx', '.txt'); 
-        folder     = @('Documents_Sorted')
+<# 
+Can be used when -recurse is required
+$DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object {$_.Directory -notlike "*_sorted"}   
+#>
+$DownloadFolderFiles = Get-ChildItem -file -Path $BasePath 
+
+
+$ExtensionTypes = @(
+    [PSCustomObject]@{
+        type       = 'Documents'
+        extensions = @('.doc', '.docx', '.csv', '.pdf', '.xls', '.xlsx', '.txt'); 
+        folder     = 'Documents_Sorted'
     }
-    images      = @{
+    [PSCustomObject]@{
+        type       = 'Images'
         extensions = @('.ico', '.gif', '.jpg', '.jpeg', '.png', '.svg', '.bmp', '.psd', '.tif')
-        folder     = @("Images_Sorted")
+        folder     = "Images_Sorted"
     }
-    executables = @{
-        extensions = @('.apk', '.bat', '.bin', '.cgi', '.pl', '.com', '.exe', '.gadget', '.jar', '.msi', '.py', '.wsf')
-        folder     = @("Executables_Sorted")
+    [PSCustomObject]@{
+        type       = 'Executables'
+        extensions = @('.apk', '.bat', '.bin', '.cgi', '.pl', '.com', '.exe', '.gadget', '.jar', '.msi', '.py', '.wsf', '.img')
+        folder     = "Executables_Sorted"
     }
-    audio       = @{
+    [PSCustomObject]@{
+        type       = 'Audio'
         extensions = @('.aif', '.cda', '.mid', '.midi', '.mp3', '.mpa', '.ogg', '.wav', '.wma', '.wpl', '.sfk')
-        folder     = @("Audio_Sorted")
+        folder     = "Audio_Sorted"
     }
-    compressed  = @{
+    [PSCustomObject]@{
+        type       = 'Compressed'
         extensions = @('.7z', '.arj', '.deb', '.pkg', '.rar', '.rpm', '.tar.gz', '.z', '.zip')
-        folder     = @("Compressed_Sorted")
+        folder     = "Compressed_Sorted"
     }
-    web         = @{
+    [PSCustomObject]@{
+        type       = 'Web'
         extensions = @('.asp', '.cer', '.cfm', '.cgi', '.css', '.htm', '.html', '.js', '.jsp', '.part', '.php', '.rss', '.xhtml', '.json')
-        folder     = @("Web_sorted")
+        folder     = "Web_sorted"
     }
-    video       = @{
+    [PSCustomObject]@{
+        type       = 'Video'
         extensions = @('.3g2', '.3gp', '.avi', '.flv', '.h264', '.m4v', '.mkv', '.mov', '.mp4', '.mpg', '.mpeg', '.rm', '.swf', '.vob', '.wmv')
-        folder     = @("Video_Sorted")
+        folder     = "Video_Sorted"
     }
-}
+)
 
 
 
 
-<# ================================ FUNCTIONS ================================ #>
+<# ================================ FUNCTIONS & CMDLETS ================================ #>
+
+
 
 function New-Folder {
     param([string]$Path, [string]$FolderName)
@@ -55,7 +70,7 @@ function New-Folder {
 
 
     if ($Exists -eq $True) {
-        Write-Warning "$FolderName already exists in $Path. Skipping folder creation"
+        Write-Host "$FolderName already exists in $Path. Skipping folder creation" -ForegroundColor Gray
     }
     else {
         New-Item -Path $Path -name $FolderName -ItemType Directory
@@ -72,7 +87,7 @@ function Move-Files {
         $Exists = Test-Path -Path "$Destination\$($File.name)"
         
         if ($Exists -eq $true) {
-            Write-Host "File $($file.name) already exists in $Destination. Overwrite? (Y/N)" -ForegroundColor Red
+            Write-Host "File $($file.name) already exists in $Destination. Overwrite? (Y/N)" -ForegroundColor Red -BackgroundColor White
             $Choice = Read-Host " "
             if ($Choice -eq 'y') {
                 $file | Move-Item -Destination $Destination -ErrorAction Stop -Force
@@ -83,9 +98,14 @@ function Move-Files {
             }
         }
         else {
-                
-            $file | Move-Item -Destination $Destination -ErrorAction Stop
-            Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
+            try {
+
+                $file | Move-Item -Destination $Destination -ErrorAction Stop
+                Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
+            }
+            catch {
+                Write-Error "Unable to move file"
+            }
         }
        
     }
@@ -93,13 +113,16 @@ function Move-Files {
 
 <# ================================ LOGIC ================================ #>
 
-foreach ($enum in $ExtensionTypes.GetEnumerator()) {
+foreach ($object in $ExtensionTypes) {
 
-    New-Folder -Path $BasePath -FolderName $enum.value.folder
+    New-Folder -Path $BasePath -FolderName $object.folder
+
     
-    foreach ($extension in $enum.Value.extensions) {
-        
-        Move-Files -Destination "$BasePath\$($enum.value.folder)" -Files $DownloadFolderFiles -ExtensionFilter $extension
+    foreach ($extension in $object.extensions) {
+
+        Move-Files -Destination "$BasePath\$($object.folder)" -Files $DownloadFolderFiles -ExtensionFilter $extension
     }
 
 }
+
+
