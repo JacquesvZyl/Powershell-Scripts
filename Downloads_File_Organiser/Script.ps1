@@ -1,6 +1,6 @@
 <# ================================ DESCRIPTION================================ #>
 
-# This script organizes your downloads directory according to file extension.
+# This script organizes your chosen directory according to file extension. It will create a new folder for each extension type object within the chosen directory
 # Script not targeting a specific file extension? Check the $ExtensionTypes variable and add the extension to any of the extensions arrays, or add another file type array with your own folder name and extension types
 # Note: This script is NOT run recursively i.e it only targets files directly in the downloads folder and NOT files in sub-folders
 
@@ -8,14 +8,9 @@
 
 <# ================================ VARIABLES ================================ #>
 
-$CurrentUser = (Get-ChildItem Env:\USERNAME).value
-$BasePath = "C:\Users\$CurrentUser\downloads" 
+$ErrorOccurred = $False
 
-<# 
-Can be used when -recurse is required
-$DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object {$_.Directory -notlike "*_sorted"}   
-#>
-$DownloadFolderFiles = Get-ChildItem -file -Path $BasePath 
+
 
 
 $ExtensionTypes = @(
@@ -61,7 +56,23 @@ $ExtensionTypes = @(
 
 <# ================================ FUNCTIONS & CMDLETS ================================ #>
 
+function Get-Folder {
 
+    Add-Type -AssemblyName System.Windows.Forms
+    $OpenFolder = New-Object -TypeName System.Windows.Forms.FolderBrowserDialog
+    $OpenFolder.ShowNewFolderButton = $true
+    $OpenFolder.Description = "Select a folder to sort. (Sorting is NOT recursive)"
+    $Result = $OpenFolder.ShowDialog()
+     
+    If ($result -eq 'OK') {
+         
+        $OpenFolder.SelectedPath
+    }
+    else {
+            
+        throw  "Please select a valid folder"
+    }
+}
 
 function New-Folder {
     param([string]$Path, [string]$FolderName)
@@ -113,16 +124,34 @@ function Move-Files {
 
 <# ================================ LOGIC ================================ #>
 
-foreach ($object in $ExtensionTypes) {
 
-    New-Folder -Path $BasePath -FolderName $object.folder
+try {
 
-    
-    foreach ($extension in $object.extensions) {
+    $BasePath = Get-Folder -ErrorAction stop
+    <# Can be used when -recurse is required
+    $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object {$_.Directory -notlike "*_sorted"}  #>
+    $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -ErrorAction stop
 
-        Move-Files -Destination "$BasePath\$($object.folder)" -Files $DownloadFolderFiles -ExtensionFilter $extension
+}
+catch {
+    Write-Warning $Error[0].Exception
+    $ErrorOccurred = $true
+}
+
+
+if (!$ErrorOccurred) {
+
+    foreach ($object in $ExtensionTypes) {
+        
+        New-Folder -Path $BasePath -FolderName $object.folder
+        
+        
+        foreach ($extension in $object.extensions) {
+            
+            Move-Files -Destination "$BasePath\$($object.folder)" -Files $DownloadFolderFiles -ExtensionFilter $extension
+        }
+        
     }
-
 }
 
 
