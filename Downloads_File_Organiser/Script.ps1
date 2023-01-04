@@ -80,7 +80,7 @@ function New-Folder {
     $Exists = Test-Path -Path "$Path\$FolderName" -PathType Container
 
 
-    if ($Exists -eq $True) {
+    if ($Exists) {
         Write-Host "$FolderName already exists in $Path. Skipping folder creation" -ForegroundColor Gray
     }
     else {
@@ -97,30 +97,36 @@ function Move-Files {
         
         $Exists = Test-Path -Path "$Destination\$($File.name)"
         
-        if ($Exists -eq $true) {
-            Write-Host "File $($file.name) already exists in $Destination. Overwrite? (Y/N)" -ForegroundColor Red -BackgroundColor White
-            $Choice = Read-Host " "
-            if ($Choice -eq 'y') {
-                $file | Move-Item -Destination $Destination -ErrorAction Stop -Force
-                Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
+        try {
+            if ($Exists) {
+                Write-Host "File $($file.name) already exists in $Destination. Overwrite? (Y/N)" -ForegroundColor Red -BackgroundColor White
+                $Choice = Read-Host " "
+                if ($Choice -eq 'y') {
+                    
+
+                    $file | Move-Item -Destination $Destination -ErrorAction Stop -Force
+                    Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
+                    
+                }
+                else {
+                    Write-Host "Skipping File '$($file.name)'"
+                }
             }
             else {
-                Write-Host "Skipping File '$($file.name)'"
-            }
-        }
-        else {
-            try {
-
+                
+                
                 $file | Move-Item -Destination $Destination -ErrorAction Stop
                 Write-Host -ForegroundColor Green "File $($file.name) moved to $Destination"
             }
-            catch {
-                Write-Error "Unable to move file"
-            }
         }
-       
+        catch {
+            Write-Warning "Unable to move file $($file.name). Reason: $($Error[0].Exception.message)"
+            
+        }
+            
     }
 }
+
 
 <# ================================ LOGIC ================================ #>
 
