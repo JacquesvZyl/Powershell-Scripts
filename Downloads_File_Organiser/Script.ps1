@@ -2,7 +2,7 @@
 
 # This script organizes your chosen directory according to file extension. It will create a new folder for each extension type object within the chosen directory
 # Script not targeting a specific file extension? Check the $ExtensionTypes variable and add the extension to any of the extensions arrays, or add another file type array with your own folder name and extension types
-# Note: This script is NOT run recursively i.e it only targets files directly in the downloads folder and NOT files in sub-folders
+# Note: This script is NOT run recursively i.e it only targets files directly in the chosen folder and NOT files in sub-folders
 
 
 
