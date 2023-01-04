@@ -2,13 +2,14 @@
 
 # This script organizes your chosen directory according to file extension. It will create a new folder for each extension type object within the chosen directory
 # Script not targeting a specific file extension? Check the $ExtensionTypes variable and add the extension to any of the extensions arrays, or add another file type array with your own folder name and extension types
-# Note: This script is NOT run recursively i.e it only targets files directly in the chosen folder and NOT files in sub-folders
+# Want to target files in sub-folders as well? Set the variable $MoveFilesRecursively to true.
 
 
 
 <# ================================ VARIABLES ================================ #>
 
 $ErrorOccurred = $False
+$MoveFilesRecursively = $False
 
 
 
@@ -61,7 +62,8 @@ function Get-Folder {
     Add-Type -AssemblyName System.Windows.Forms
     $OpenFolder = New-Object -TypeName System.Windows.Forms.FolderBrowserDialog
     $OpenFolder.ShowNewFolderButton = $true
-    $OpenFolder.Description = "Select a folder to sort. (Sorting is NOT recursive)"
+    $Description = if ($MoveFilesRecursively) { "(Sorting IS Recursive)" }else { "(Sorting is NOT Recursive)" }
+    $OpenFolder.Description = "Select a folder to sort. $Description"
     $Result = $OpenFolder.ShowDialog()
      
     If ($result -eq 'OK') {
@@ -81,7 +83,7 @@ function New-Folder {
 
 
     if ($Exists) {
-        Write-Host "$FolderName already exists in $Path. Skipping folder creation" -ForegroundColor Gray
+        Write-Host "=> $FolderName already exists in $Path. Skipping folder creation" -ForegroundColor White
     }
     else {
         New-Item -Path $Path -name $FolderName -ItemType Directory
@@ -132,11 +134,16 @@ function Move-Files {
 
 
 try {
-
     $BasePath = Get-Folder -ErrorAction stop
-    <# Can be used when -recurse is required
-    $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object {$_.Directory -notlike "*_sorted"}  #>
-    $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -ErrorAction stop
+    
+    if ($MoveFilesRecursively) {
+
+        $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object { $_.Directory -notlike "*_sorted" } 
+    }
+    else {
+
+        $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -ErrorAction stop
+    }
 
 }
 catch {
