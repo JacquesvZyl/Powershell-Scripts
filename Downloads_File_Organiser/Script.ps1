@@ -138,7 +138,7 @@ try {
     
     if ($MoveFilesRecursively) {
 
-        $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object { $_.Directory -notlike "*_sorted" } 
+        $DownloadFolderFiles = Get-ChildItem -file -Path $BasePath -Recurse | Where-Object { $_.Directory -notlike "*_sorted" } -ErrorAction stop
     }
     else {
 
@@ -147,7 +147,7 @@ try {
 
 }
 catch {
-    Write-Warning $Error[0].Exception
+    Write-Warning $Error[0].Exception.Message
     $ErrorOccurred = $true
 }
 
