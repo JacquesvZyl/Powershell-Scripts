@@ -134,7 +134,7 @@ function Move-Files {
 
 
 try {
-    $BasePath = Get-Folder -ErrorAction stop
+    $BasePath = Get-Folder
     
     if ($MoveFilesRecursively) {
 
