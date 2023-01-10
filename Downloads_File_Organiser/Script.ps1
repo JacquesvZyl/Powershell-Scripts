@@ -61,7 +61,7 @@ function Get-Folder {
 
     Add-Type -AssemblyName System.Windows.Forms
     $OpenFolder = New-Object -TypeName System.Windows.Forms.FolderBrowserDialog
-    $OpenFolder.ShowNewFolderButton = $true
+    $OpenFolder.ShowNewFolderButton = $False
     $Description = if ($MoveFilesRecursively) { "(Sorting IS Recursive)" }else { "(Sorting is NOT Recursive)" }
     $OpenFolder.Description = "Select a folder to sort. $Description"
     $Result = $OpenFolder.ShowDialog()
